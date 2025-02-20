@@ -1,6 +1,6 @@
-﻿using PanelDiscussionManager.Interfaces;
+﻿using PanelDiscussionManager.Infrastructure.Interfaces;
 
-namespace PanelDiscussionManager.Services;
+namespace PanelDiscussionManager.Infrastructure.Services;
 
 public class RandomService : IRandomService
 {
@@ -22,6 +22,6 @@ public class RandomService : IRandomService
     {
         if (max < min) throw new ArgumentException("RandomService.GenerateRandomInteger: maximum must be equal or greater than minimum!");
         if (min == max) return min;
-        return Random.Next(min, max+1);
+        return Random.Next(min, max + 1);
     }
 }

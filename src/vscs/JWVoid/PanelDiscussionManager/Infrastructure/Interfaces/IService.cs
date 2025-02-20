@@ -1,4 +1,4 @@
-﻿namespace PanelDiscussionManager.Interfaces;
+﻿namespace PanelDiscussionManager.Infrastructure.Interfaces;
 
 public interface IService
 {
