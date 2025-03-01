@@ -16,28 +16,53 @@ public class QuestionRound
 
     private int _discussantIndex = -1;
 
-    public QuestionRound(Question question, TimeSpan AllowedDurationMin, TimeSpan AllowedDurationMax, Discussant[] discussants)
+    public QuestionRound(Question question, TimeSpan allowedDurationMin, TimeSpan allowedDurationMax, Discussant[] discussants)
     {
-        Question = question;
-        Discussants = discussants;
-        DiscussantsTimes = new DiscussantTimes[Discussants.Length].Select(v => new DiscussantTimes(AllowedDurationMin, AllowedDurationMax)).ToArray();
+        Reset(question, allowedDurationMin, allowedDurationMax, discussants);
     }
 
     // methods
-    public void Start()
+    public bool Start()
+    {
+        if (_discussantIndex >= 0) return false;
+        return NextDiscussant();
+    }
+
+    public Tuple<bool, bool> Next(TimeSpan usedDuration)
+    {
+        if (!HasChosenDiscussant() || CurrentDiscussantTimes!.AllowedDurationMax < usedDuration) return Tuple.Create(false, false);
+
+        CurrentDiscussantTimes!.UsedDuration = (usedDuration < CurrentDiscussantTimes!.AllowedDurationMin ? CurrentDiscussantTimes!.AllowedDurationMin : usedDuration);
+        CurrentDiscussant!.UsedDuration += usedDuration;
+        CurrentDiscussant!.AllowedDuration -= usedDuration;
+
+        return Tuple.Create(true, NextDiscussant());
+    }
+
+    protected bool NextDiscussant()
     {
         _discussantIndex++;
-        if(HasChosenDiscussant())
-        {
-            //var ticksPerPosition = CurrentDiscussant!.SpeechTime / (Questions.Count() * Discussants.Count());
+        return HasChosenDiscussant();
+    }
 
-            //var allowedTimeMin = new TimeSpan((long)Math.Ceiling(min * ticksPerPosition));
-
-            //CurrentDiscussantTimes!
-        }
+    // reset-methods
+    public void Reset(Question question, TimeSpan allowedDurationMin, TimeSpan allowedDurationMax, Discussant[] discussants)
+    {
+        Question = question;
+        Discussants = discussants;
+        DiscussantsTimes = new DiscussantTimes[Discussants.Length].Select(v => new DiscussantTimes(allowedDurationMin, allowedDurationMax)).ToArray();
+        _discussantIndex = -1;
     }
 
     // get-methods
+    public DiscussantTimes? GetDiscussantTimesOf(Person person)
+    {
+        var entry = Discussants.Select((d, i) => Tuple.Create(i, d.Person))
+                               .Where(e => e.Item2.Name == person.Name)
+                               .FirstOrDefault();
+        return entry == null ? null : DiscussantsTimes[entry.Item1];
+    }
+
     public bool HasChosenDiscussant()
     {
         return 0 <= _discussantIndex && _discussantIndex < Discussants.Length;

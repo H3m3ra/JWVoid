@@ -1,5 +1,4 @@
 ﻿using PanelDiscussionManager.Application;
-using PanelDiscussionManager.Domain.BuisnessObjects;
 using PanelDiscussionManager.Domain.Entities;
 using PanelDiscussionManager.Domain.Services;
 using PanelDiscussionManager.Infrastructure.Interfaces;
@@ -44,23 +43,31 @@ DiscussionServer discussionServer;
     discussionServer.Start();
 }
 
-foreach(var round in discussionServer.Rounds)
+Console.WriteLine($"{discussionServer.CurrentRound!.CurrentDiscussant!.Person.Name}: 6m - {discussionServer.NextQuestion(new TimeSpan(0, 6, 0))}");
+Console.WriteLine($"{discussionServer.CurrentRound!.CurrentDiscussant!.Person.Name}: 9m - {discussionServer.NextQuestion(new TimeSpan(0, 9, 0))}");
+Console.WriteLine($"{discussionServer.CurrentRound!.CurrentDiscussant!.Person.Name}: 5m - {discussionServer.NextQuestion(new TimeSpan(0, 2, 0))}");
+Console.WriteLine($"{discussionServer.CurrentRound!.CurrentDiscussant!.Person.Name}: 6m - {discussionServer.NextQuestion(new TimeSpan(0, 6, 0))}");
+Console.WriteLine($"{discussionServer.CurrentRound!.CurrentDiscussant!.Person.Name}: 9m - {discussionServer.NextQuestion(new TimeSpan(0, 9, 0))}");
+Console.WriteLine($"{discussionServer.CurrentRound!.CurrentDiscussant!.Person.Name}: 5m - {discussionServer.NextQuestion(new TimeSpan(0, 2, 0))}");
+
+string ToHMSFromTimeSpan(TimeSpan duration)
 {
-    Console.WriteLine(string.Join("-", round.Discussants.Select(d => d.Person.Name)));
+    var result = "";
+    if (duration.Hours > 0) result += duration.Hours + "h";
+    if (duration.Minutes > 0) result += duration.Minutes + "m";
+    if (duration.Seconds > 0) result += duration.Seconds + "s";
+
+    return (result.Length == 0 ? "0m" : result);
 }
 
-discussionServer.Rounds.First().Start();
-
-discussionServer.Rounds.First().CurrentDiscussantTimes.UsedDuration = new TimeSpan(0, 6, 0);
-
-discussionServer.Rounds.First().CurrentDiscussant.UsedDuration += discussionServer.Rounds.First().CurrentDiscussantTimes.UsedDuration;
-discussionServer.Rounds.First().CurrentDiscussant.AllowedDuration -= discussionServer.Rounds.First().CurrentDiscussant.UsedDuration;
-
-var reducedTime = new TimeSpan(discussionServer.Rounds.First().CurrentDiscussant.AllowedDuration.Ticks / (discussionServer.Questions.Count() - 1));
-
-foreach (var round in discussionServer.Rounds.Skip(1))
+var i = 0;
+foreach (var round in discussionServer.Rounds)
 {
-    round.DiscussantsTimes[0].AllowedDurationMax = reducedTime;
+    Console.WriteLine(
+        $"{i+1}. " +
+        string.Join(" - ", round.Discussants.Select((d, i) => $"{d.Person.Name}={ToHMSFromTimeSpan(round.DiscussantsTimes[i]!.AllowedDurationMin)} {ToHMSFromTimeSpan(round.DiscussantsTimes[i]!.UsedDuration)} {ToHMSFromTimeSpan(round.DiscussantsTimes[i]!.AllowedDurationMax)}"))
+    );
+    i++;
 }
 
 var y = 0;
